@@ -42,7 +42,7 @@ async def on_message(msg):
             links_file = open(f'N{rolled_level}.txt')
             link = links_file.readlines()[rolled_point_index-1]
             img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
-            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059787724836894>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
+            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059458824278026>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
         
         if msg.content.split(' ')[0] == 'publish-final':
             additional = msg.content.split(' ', 1)[1] if len(msg.content.split(' ', 1)) > 1 else ""
@@ -50,7 +50,7 @@ async def on_message(msg):
             links_file = open(f'N{rolled_level}.txt')
             link = links_file.readlines()[rolled_point_index-1]
             img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
-            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059787724836894>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
+            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059458824278026>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
 
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
