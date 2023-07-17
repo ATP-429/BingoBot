@@ -15,29 +15,33 @@ size = [0, 0, 197, 182, 132, 84]
 rolled_level = ""
 rolled_point_index = ""
 
+channel_id = 1130498794123960450
+
 @bot.event
 async def on_message(msg):
     global rolled_point_index, rolled_level
-    if msg.content == 'roll':
-        level = random.randint(2, 5)
-        n = size[level]
-        point_index = random.randint(1, n)
-        links_file = open(f'N{level}.txt')
-        link = links_file.readlines()[point_index-1]
-        img = open(f'N{level}/{point_index}.png', 'rb')
+    if msg.author.id == 115703582426136580 or msg.author.id == 180770835018153994:
+        if msg.content == 'roll':
+            level = random.randint(2, 5)
+            n = size[level]
+            point_index = random.randint(1, n)
+            links_file = open(f'N{level}.txt')
+            link = links_file.readlines()[point_index-1]
+            img = open(f'N{level}/{point_index}.png', 'rb')
 
-        rolled_level = level
-        rolled_point_index = point_index
+            rolled_level = level
+            rolled_point_index = point_index
 
-        channel = msg.channel
-        await channel.send(f"{link}", file=discord.File(img))
+            channel = msg.channel
+            await channel.send(f"{link}", file=discord.File(img))
 
-    if msg.content == 'publish':
-        channel = await bot.fetch_channel('1098615520447709247')
-        links_file = open(f'N{rolled_level}.txt')
-        link = links_file.readlines()[rolled_point_index-1]
-        img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
-        await channel.send(f"{link}", file=discord.File(img))
+        if msg.content.split(' ')[0] == 'publish':
+            additional = msg.content.split(' ', 1)[1]
+            channel = await bot.fetch_channel(channel_id)
+            links_file = open(f'N{rolled_level}.txt')
+            link = links_file.readlines()[rolled_point_index-1]
+            img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
+            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059787724836894>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
 
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
