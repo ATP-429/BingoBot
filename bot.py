@@ -2,6 +2,7 @@ from discord import app_commands
 import discord
 import os
 import random
+import editor
 
 bot = discord.Client(intents=discord.Intents.default())
 
