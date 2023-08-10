@@ -1,4 +1,8 @@
 from discord import app_commands
+
+import datetime
+import pytz
+
 import discord
 import os
 import random
@@ -18,6 +22,7 @@ rolled_point_index = ""
 
 channel_id = 1130498794123960450
 final_channel_id = 1129059787724836894
+submissions_channel_id = 1129059458824278026
 
 @bot.event
 async def on_message(msg):
@@ -52,6 +57,26 @@ async def on_message(msg):
             link = links_file.readlines()[rolled_point_index-1]
             img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
             await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059458824278026>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
+        
+        if msg.content.split(' ')[0] == 'count':
+            date_str = msg.content.split(' ', 1)[1]
+            try:
+                start_time = datetime.datetime.strptime(date_str, "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=20, minute=0) + datetime.timedelta(hours=24)
+                end_time = start_time + datetime.timedelta(hours=24)
+                channel = await bot.fetch_channel(submissions_channel_id)
+
+                async for submission in channel.history(limit=100, before=end_time, after=start_time):
+                    for reaction in submission.reactions:
+                        if reaction.emoji == '⭐':
+                            async for user in reaction.users():
+                                print(user.id)
+                                if user.id == 738469919800295584:
+                                    await msg.channel.send(f"Counted submission for {submission.author}")
+
+                await msg.channel.send(f"Start={start_time}, end={end_time}")
+            except ValueError:
+                await msg.channel.send(f"Please enter a proper date time")
+
 
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
