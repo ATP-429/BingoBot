@@ -112,3 +112,19 @@ class Editor:
             newX = max(list(names_dict.values())) + 1
             self.updateCoord(newX, 0, [[name]]) #print("New name entry at ", newX, 0)
             self.updateCoord(newX, dates_dict[date], [[1]]) #print("Index to update is ", newX, dates_dict[date])
+    
+    def get(self, name, date):
+        names_dict = self.get_names_dict()
+        dates_dict = self.get_dates_dict()
+
+        if name in names_dict:
+            x = names_dict[name]
+            y = dates_dict[date]
+            #print("Index to update is ", names_dict[name], dates_dict[date])
+            score = self.readCoord(x, y)
+            if len(score) == 0:
+                return 0
+            else:
+                return 1
+        else:  # If name is not in the google sheet, return 0 as they haven't completed today's bingo
+            return 0
