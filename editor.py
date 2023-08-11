@@ -103,12 +103,12 @@ class Editor:
         dates_dict = self.get_dates_dict()
 
         if name in names_dict:
-            print("Index to update is ", names_dict[name], dates_dict[date])
+            x = names_dict[name]
+            y = dates_dict[date]
+            #print("Index to update is ", names_dict[name], dates_dict[date])
+            self.updateCoord(x, y, [[1]])
+
         else:
             newX = max(list(names_dict.values())) + 1
-            print("New name entry at ", newX, 0)
-            print("Index to update is ", newX, dates_dict[date])
-
-
-editor = Editor()
-editor.set('fds', '07/08/23')
+            self.updateCoord(newX, 0, [[name]]) #print("New name entry at ", newX, 0)
+            self.updateCoord(newX, dates_dict[date], [[1]]) #print("Index to update is ", newX, dates_dict[date])

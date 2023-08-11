@@ -6,7 +6,7 @@ import pytz
 import discord
 import os
 import random
-import editor
+from editor import Editor
 
 bot = discord.Client(intents=discord.Intents.default())
 
@@ -61,19 +61,24 @@ async def on_message(msg):
         if msg.content.split(' ')[0] == 'count':
             date_str = msg.content.split(' ', 1)[1]
             try:
-                start_time = datetime.datetime.strptime(date_str, "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=20, minute=0) + datetime.timedelta(hours=24)
-                end_time = start_time + datetime.timedelta(hours=24)
-                channel = await bot.fetch_channel(submissions_channel_id)
+                editor = Editor()
+                dates_dict = editor.get_dates_dict()
+                if date_str in dates_dict:
+                    start_time = datetime.datetime.strptime(date_str, "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=20, minute=0) + datetime.timedelta(hours=24)
+                    end_time = start_time + datetime.timedelta(hours=24)
+                    channel = await bot.fetch_channel(submissions_channel_id)
 
-                async for submission in channel.history(limit=100, before=end_time, after=start_time):
-                    for reaction in submission.reactions:
-                        if reaction.emoji == '⭐':
-                            async for user in reaction.users():
-                                print(user.id)
-                                if user.id == 738469919800295584:
-                                    await msg.channel.send(f"Counted submission for {submission.author}")
+                    async for submission in channel.history(limit=100, before=end_time, after=start_time):
+                        for reaction in submission.reactions:
+                            if reaction.emoji == '⭐':
+                                async for user in reaction.users():
+                                    if user.id == 738469919800295584:
+                                        editor.set(str(submission.author), date_str)
+                                        await msg.channel.send(f"Counted submission for {submission.author}")
 
-                await msg.channel.send(f"Start={start_time}, end={end_time}")
+                    await msg.channel.send(f"Start={start_time}, end={end_time}")
+                else:
+                    await msg.channel.send(f"Please enter a date that belongs to one of the bingo dates")
             except ValueError:
                 await msg.channel.send(f"Please enter a proper date time")
 
