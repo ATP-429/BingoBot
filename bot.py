@@ -22,7 +22,7 @@ rolled_point_index = ""
 
 channel_id = 1130498794123960450
 final_channel_id = 1129059787724836894
-submissions_channel_id = 1141874560967397496
+submissions_channel_id = 1129059458824278026
 
 KAFKA = 115703582426136580
 AARYASH = 180770835018153994
