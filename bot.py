@@ -33,7 +33,16 @@ AARYASH = 180770835018153994
 TIMMY = 738469919800295584
 PATH = 277657928062992395
 
+PUBLISH_TEST_HOUR = 19
+PUBLISH_TEST_MINUTE = 30
+
+PUBLISH_FINAL_HOUR = 20
+PUBLISH_FINAL_MINUTE = 0
+
 probs = [0.35, 0.30, 0.20, 0.10, 0.05]
+
+def get_days_since_epoch():
+    return (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=PUBLISH_TEST_HOUR, minute=PUBLISH_TEST_MINUTE)).days-1
 
 async def roll():
     global rolled_point_index, rolled_level
@@ -64,7 +73,7 @@ async def publish_test():
     links_file = open(f'N{rolled_level}.txt')
     link = links_file.readlines()[rolled_point_index-1]
 
-    days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon'))).days
+    days_since_epoch = get_days_since_epoch()
     
     month_no = days_since_epoch//28
     week_no = (days_since_epoch-month_no*28)//7
@@ -77,7 +86,7 @@ async def publish_final():
     links_file = open(f'N{rolled_level}.txt')
     link = links_file.readlines()[rolled_point_index-1]
 
-    days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon'))).days
+    days_since_epoch = get_days_since_epoch()
     
     month_no = days_since_epoch//28
     week_no = (days_since_epoch-month_no*28)//7
@@ -96,7 +105,7 @@ async def on_message(msg):
             links_file = open(f'N{rolled_level}.txt')
             link = links_file.readlines()[rolled_point_index-1]
 
-            days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=16, )).days
+            days_since_epoch = get_days_since_epoch()
             
             month_no = days_since_epoch//28
             week_no = (days_since_epoch-month_no*28)//7
@@ -145,14 +154,6 @@ async def on_message(msg):
 
             score = editor.get(str(msg.author), date)
             await msg.channel.send(f"Your Today's Bingo Score is {score}")
-
-
-PUBLISH_TEST_HOUR = 19
-PUBLISH_TEST_MINUTE = 30
-
-PUBLISH_FINAL_HOUR = 20
-PUBLISH_FINAL_MINUTE = 0
-
 
 @tasks.loop(seconds = 60) # repeat after every 60 seconds
 async def checkTimeLoop():
