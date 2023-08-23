@@ -1,5 +1,9 @@
 from discord import app_commands
+from discord.ext import tasks
 
+import asyncio
+import threading
+import time
 import datetime
 import pytz
 
@@ -15,7 +19,7 @@ tree = app_commands.CommandTree(bot)
 # async def confirm(message):
 # 	await message.add_reaction('👍')
 
-size = [0, 0, 197, 182, 132, 84]
+size = [0, 180, 210, 217, 177, 126]
 
 rolled_level = ""
 rolled_point_index = ""
@@ -29,40 +33,82 @@ AARYASH = 180770835018153994
 TIMMY = 738469919800295584
 PATH = 277657928062992395
 
+probs = [0.35, 0.30, 0.20, 0.10, 0.05]
+
+async def roll():
+    global rolled_point_index, rolled_level
+    level = 0
+    
+    rand = random.uniform(0, 1)
+    if rand < probs[0]:
+        level = 5
+    elif rand < probs[0]+probs[1]:
+        level = 4
+    elif rand < probs[0]+probs[1]+probs[2]:
+        level = 3
+    elif rand < probs[0]+probs[1]+probs[2]+probs[3]:
+        level = 2
+    else:
+        level = 1
+
+    n = size[level]
+    point_index = random.randint(1, n)
+    links_file = open(f'N{level}.txt')
+    link = links_file.readlines()[point_index-1]
+
+    rolled_level = level
+    rolled_point_index = point_index
+
+async def publish_test():
+    channel = await bot.fetch_channel(channel_id)
+    links_file = open(f'N{rolled_level}.txt')
+    link = links_file.readlines()[rolled_point_index-1]
+
+    days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon'))).days
+    
+    month_no = days_since_epoch//28
+    week_no = (days_since_epoch-month_no*28)//7
+    day_no = days_since_epoch-month_no*28-week_no*7
+
+    await channel.send(f"|| <@&1129067149776928808> ||\nThe [Bingo Grammar Point]({link}) for today has been rolled!\nMonth {month_no+1} - Week {week_no+1} - Day {day_no+1}\n\nPost your submissions in the channel <#1129059458824278026>\n\nGood Luck!")
+
+async def publish_final():
+    channel = await bot.fetch_channel(final_channel_id)
+    links_file = open(f'N{rolled_level}.txt')
+    link = links_file.readlines()[rolled_point_index-1]
+
+    days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon'))).days
+    
+    month_no = days_since_epoch//28
+    week_no = (days_since_epoch-month_no*28)//7
+    day_no = days_since_epoch-month_no*28-week_no*7
+
+    await channel.send(f"|| <@&1129067149776928808> ||\nThe [Bingo Grammar Point]({link}) for today has been rolled!\nMonth {month_no+1} - Week {week_no+1} - Day {day_no+1}\n\nPost your submissions in the channel <#1129059458824278026>\n\nGood Luck!")
+
 
 @bot.event
 async def on_message(msg):
     global rolled_point_index, rolled_level
     if msg.author.id == KAFKA or msg.author.id == AARYASH or msg.author.id == TIMMY or msg.author.id == PATH:
         if msg.content == '!roll':
-            level = random.randint(2, 5)
-            n = size[level]
-            point_index = random.randint(1, n)
-            links_file = open(f'N{level}.txt')
-            link = links_file.readlines()[point_index-1]
-            img = open(f'N{level}/{point_index}.png', 'rb')
-
-            rolled_level = level
-            rolled_point_index = point_index
-
+            await roll()
             channel = msg.channel
-            await channel.send(f"{link}", file=discord.File(img))
+            links_file = open(f'N{rolled_level}.txt')
+            link = links_file.readlines()[rolled_point_index-1]
+
+            days_since_epoch = (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=16, )).days
+            
+            month_no = days_since_epoch//28
+            week_no = (days_since_epoch-month_no*28)//7
+            day_no = days_since_epoch-month_no*28-week_no*7
+
+            await channel.send(f"Month {month_no+1} - Week {week_no+1} - Day {day_no+1} \n[Bunpro Link]({link})")
 
         if msg.content.split(' ')[0] == '!publish-test':
-            additional = msg.content.split(' ', 1)[1] if len(msg.content.split(' ', 1)) > 1 else ""
-            channel = await bot.fetch_channel(channel_id)
-            links_file = open(f'N{rolled_level}.txt')
-            link = links_file.readlines()[rolled_point_index-1]
-            img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
-            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059458824278026>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
+            await publish_test()
         
         if msg.content.split(' ')[0] == '!publish-final':
-            additional = msg.content.split(' ', 1)[1] if len(msg.content.split(' ', 1)) > 1 else ""
-            channel = await bot.fetch_channel(final_channel_id)
-            links_file = open(f'N{rolled_level}.txt')
-            link = links_file.readlines()[rolled_point_index-1]
-            img = open(f'N{rolled_level}/{rolled_point_index}.png', 'rb')
-            await channel.send(f"<@&1129067149776928808>\nThe Bingo Grammar Point for today has been rolled!\n{additional}\nPost your submissions in the channel <#1129059458824278026>\nCheck out the link below for more information about the grammar point : {link}", file=discord.File(img))
+            await publish_final()
         
         if msg.content.split(' ')[0] == '!count':
             date_str = msg.content.split(' ', 1)[1]
@@ -101,13 +147,27 @@ async def on_message(msg):
             await msg.channel.send(f"Your Today's Bingo Score is {score}")
 
 
+PUBLISH_TEST_HOUR = 19
+PUBLISH_TEST_MINUTE = 30
+
+PUBLISH_FINAL_HOUR = 20
+PUBLISH_FINAL_MINUTE = 0
 
 
+@tasks.loop(seconds = 60) # repeat after every 60 seconds
+async def checkTimeLoop():
+    now = datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon'))
+    if now.hour==PUBLISH_TEST_HOUR and now.minute==PUBLISH_TEST_MINUTE:
+        await roll()
+        await publish_test()
+    if now.hour==PUBLISH_FINAL_HOUR and now.minute==PUBLISH_FINAL_MINUTE:
+        await publish_final()
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 @bot.event
 async def on_ready():
-    await tree.sync()
+    #await tree.sync()
+    checkTimeLoop.start()
     print("Ready!")
 
 f = open('token.txt')
