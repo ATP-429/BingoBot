@@ -19,7 +19,7 @@ tree = app_commands.CommandTree(bot)
 # async def confirm(message):
 # 	await message.add_reaction('👍')
 
-size = [0, 180, 210, 217, 177, 126]
+size = [0, 180, 210, 217, 177, 39]
 
 rolled_level = ""
 rolled_point_index = ""
@@ -40,9 +40,9 @@ PUBLISH_FINAL_HOUR = 20
 PUBLISH_FINAL_MINUTE = 0
 
 COUNT_HOUR = 20
-COUNT_MINUTE = 0
+COUNT_MINUTE = 5
 
-probs = [0.35, 0.30, 0.20, 0.10, 0.05]
+probs = [0.15, 0.40, 0.30, 0.10, 0.05]
 
 def get_days_since_epoch():
     return (datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.datetime.strptime('17/07/23', "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=PUBLISH_TEST_HOUR, minute=PUBLISH_TEST_MINUTE)).days-1
@@ -68,6 +68,13 @@ async def roll():
     links_file = open(f'N{level}.txt')
     link = links_file.readlines()[point_index-1]
 
+    done_links_file = open('done.txt')
+    done_links = done_links_file.readlines()
+
+    if link in done_links:  # If link is already done, reroll
+        await roll()
+        return
+
     rolled_level = level
     rolled_point_index = point_index
 
@@ -88,6 +95,9 @@ async def publish_final():
     channel = await bot.fetch_channel(final_channel_id)
     links_file = open(f'N{rolled_level}.txt')
     link = links_file.readlines()[rolled_point_index-1]
+
+    f = open('done.txt', 'a')
+    f.write(link)
 
     days_since_epoch = get_days_since_epoch()
     
