@@ -39,6 +39,9 @@ PUBLISH_TEST_MINUTE = 30
 PUBLISH_FINAL_HOUR = 20
 PUBLISH_FINAL_MINUTE = 0
 
+COUNT_HOUR = 20
+COUNT_MINUTE = 0
+
 probs = [0.35, 0.30, 0.20, 0.10, 0.05]
 
 def get_days_since_epoch():
@@ -94,6 +97,26 @@ async def publish_final():
 
     await channel.send(f"|| <@&1129067149776928808> ||\nThe [Bingo Grammar Point]({link}) for today has been rolled!\nMonth {month_no+1} - Week {week_no+1} - Day {day_no+1}\n\nPost your submissions in the channel <#1129059458824278026>\n\nGood Luck!")
 
+async def count(date_str, output_channel):
+    editor = Editor()
+    dates_dict = editor.get_dates_dict()
+    if date_str in dates_dict:
+        start_time = datetime.datetime.strptime(date_str, "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=20, minute=0) + datetime.timedelta(hours=24)
+        end_time = start_time + datetime.timedelta(hours=24)
+        channel = await bot.fetch_channel(submissions_channel_id)
+
+        async for submission in channel.history(limit=100, before=end_time, after=start_time):
+            for reaction in submission.reactions:
+                if reaction.emoji == '⭐':
+                    async for user in reaction.users():
+                        if user.id == KAFKA or user.id == AARYASH or user.id == TIMMY or user.id == PATH:
+                            editor.set(str(submission.author), date_str)
+                            await output_channel.send(f"Counted submission for {submission.author}")
+
+        await output_channel.send(f"Start={start_time}, end={end_time}")
+    else:
+        await output_channel.send(f"Please enter a date that belongs to one of the bingo dates in the sheet")
+
 
 @bot.event
 async def on_message(msg):
@@ -122,24 +145,7 @@ async def on_message(msg):
         if msg.content.split(' ')[0] == '!count':
             date_str = msg.content.split(' ', 1)[1]
             try:
-                editor = Editor()
-                dates_dict = editor.get_dates_dict()
-                if date_str in dates_dict:
-                    start_time = datetime.datetime.strptime(date_str, "%d/%m/%y").astimezone(pytz.timezone('Europe/Lisbon')).replace(hour=20, minute=0) + datetime.timedelta(hours=24)
-                    end_time = start_time + datetime.timedelta(hours=24)
-                    channel = await bot.fetch_channel(submissions_channel_id)
-
-                    async for submission in channel.history(limit=100, before=end_time, after=start_time):
-                        for reaction in submission.reactions:
-                            if reaction.emoji == '⭐':
-                                async for user in reaction.users():
-                                    if user.id == KAFKA or user.id == AARYASH or user.id == TIMMY or user.id == PATH:
-                                        editor.set(str(submission.author), date_str)
-                                        await msg.channel.send(f"Counted submission for {submission.author}")
-
-                    await msg.channel.send(f"Start={start_time}, end={end_time}")
-                else:
-                    await msg.channel.send(f"Please enter a date that belongs to one of the bingo dates")
+                await count(date_str, msg.channel)
             except ValueError:
                 await msg.channel.send(f"Please enter a proper date time")
         
@@ -163,6 +169,11 @@ async def checkTimeLoop():
         await publish_test()
     if now.hour==PUBLISH_FINAL_HOUR and now.minute==PUBLISH_FINAL_MINUTE:
         await publish_final()
+    if now.hour==COUNT_HOUR and now.minute==COUNT_MINUTE:
+        date = datetime.datetime.now().astimezone(pytz.timezone('Europe/Lisbon')) - datetime.timedelta(hours=24)
+        date = datetime.datetime.strftime(date, "%d/%m/%y")
+        channel = await bot.fetch_channel(channel_id)
+        await count(date, channel)
 
 # EVENT LISTENER FOR WHEN THE BOT HAS SWITCHED FROM OFFLINE TO ONLINE.
 @bot.event
